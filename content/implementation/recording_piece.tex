@@ -1,0 +1,50 @@
+%!TEX root = ../../thesis.tex
+\section{Recording Piece}
+\label{impl-recording-piece}
+
+The recording piece is a data structure that represents the user's recordings and uploaded audio files that can be used in `recording' tracks.
+
+\begin{lstlisting}[language=JavaScript, caption=The recording piece's data structure, label=lst:recording-piece]
+{
+  "buffer_id": "buffer_id",
+  "position": 7.32,
+  "offsetStart": 2.04,
+  "offsetEnd": 1.51,
+  "id": "piece_id"
+}
+\end{lstlisting}
+
+Its data structure is the simplest of all pieces because it basically only needs a reference to its buffer file (line 2, \reflisting{lst:recording-piece}) and the associated position at which it should be played (line 3). In addition to that, some recording pieces also contain information about offsets from the start and from the end (line 4f) which should be skipped in the playback.
+
+The visual representation of a recording piece is the waveform of its associated audio file (see \refchapter{concept-recording}). A waveform is created by reading out the buffer's PCM audio data and rendering those values onto a \code{canvas} element. PCM stands for pulse-code modulation and it is a standardized way to represent a sampled audio signal. It stores the audio signal's amplitude for each sample that was taken in values of ranges from -1 to +1. A typical sample frequency for audio signals is 44.1kHz \cite[p. 26]{park2009introductionto}. The rendering algorithm takes the editor's current zoom level (see \refchapter{concept-overview}) into account and averages the sampled regions into one pixel wide chunks.
+
+\begin{lstlisting}[language=JavaScript, caption=Simplified waveform algorithm, label=lst:waveform]
+  var width = buffer.duration * pixelsPerSecond;
+  var channelData = buffer.getChannelData(0);
+  var length = channelData.length;
+  var stepSize = Math.ceil(length / width);
+
+  for(var i = 0; i < width; i++){
+    var min = Math.min(i, stepSize, channelData);
+    var max = Math.max(i, stepSize, channelData);
+
+    rect(i, (1 + min) * middle, 1, (max - min) * middle);
+  }
+\end{lstlisting}
+
+The waveform's width in pixels is defined by the product of the buffer's \code{duration} and the editor's zoom level in relation to pixels (line 1, \reflisting{lst:waveform}). The PCM data can simply be read from the buffer by calling its \code{getChannelData} method (line 2). It is important to average the PCM data because it is needed to correctly transform the PCM data into the editor's time space. The width of the rendered element is much smaller than there are entries in the data array because of the high sampling frequency. It is not a classical average calculation but a search for the minimum and maximum value of a certain part in the data (line 7f), because an average does not represent the shape of the signal's wave correctly and could be nulled from oscillation in the audio signal. So each pixel of the canvas element in the end represents the min and max of several hundred samples from the original data. Those values are rendered as a 1px wide rectangle which is vertically centered on the canvas (line 10).
+
+Just like all other pieces, the recording piece's position can be changed by dragging it to the desired position in the track. Instead of using the previously described HTML5 drag and drop API (see \refchapter{impl-tracks}), pieces use a self-written drag and drop module because when using the native API for moving the original element, the events stopped firing after some time, which rendered this solution useless.
+
+The self-written module uses standard DOM events to emulate the behavior of the native module. It starts by detecting a `mousedown' event on one of the draggable DOM nodes. A node is activated by simply adding a special attribute to it. This attribute is detected by AngularJS, which will then trigger a custom directive that adds the drag and drop functionality. After the `mousedown' event has been detected, a handler which tracks the global mouse movement is attached to the document. For each `mousemove' event, a move-delta is calculated from the previous mouse position and then propagated as a `drag' event. In addition to the `drag' event, the module also propagates `drag-start' and `drag-end' events similarly to the native API. Based on this module, an abstract \code{draggablePiece} directive was created which is used to add drag and drop functionality to all pieces.
+
+The module is also used for the implementation of the recording piece's edit view which allows the user to define offsets for the current piece. The handles for both offsets (see \refchapter{subsub:recording-edit}) inherit the base module's functionality and build their own functionality on top of the module's events. The recording edit view is another user interface that has to translate between visual representation and time representation. An offset's visual representation is a \code{div} element whose width can be changed by dragging one of the handles. Once the handle is released, the module needs to calculate the actual time representation of the \code{div's} width. In both cases, the width of the element needs to be divided by the current value of \code{pixelsPerSecond} (the editor's zoom level) to get the correct time representation.
+
+Another important aspect of the edit view is that its state is not synchronized on all clients and a synchronization will only happen when the user applies the currently selected range for the recording. Otherwise, users would be able to remotely drag the handles from other users interfaces and the accuracy of the user interface could not be guaranteed. A more detailed description on which attributes are synced between clients and which are not, can be found in \refchapter{sub:sync-tracked-values}.
+
+
+The third view that is related to the recording piece is the recording view (see \refchapter{subsub:recording-ui}). At its core, the recording view is based on an a new web API called \code{getUserMedia}. It gives access to the streams of the client's microphone, the client's camera and, in very recent releases, also access to a stream of the clients screen. The audio stream is of the highest interest for the editor, because it can be used as a Web Audio node and therefore for visualizations and recordings. As soon as the user has granted access to its microphone stream\footnote{Technically, the API is not limited to just give access to the user's microphone. It is capable of providing an auio stream from any of the user's audio input devices (microphone, line-in etc.).}, a real-time frequency spectrum of the audio signal is shown. The spectrum can be used to fine-tune the incoming signal, e.g. by changing an instrument's settings, a microphone's settings or by getting closer to the microphone. The algorithm for drawing the frequency spectrum is similar to the one shown in \reflisting{lst:waveform}, but instead of selecting the signal's \code{channelData}, its \code{frequencyData} is used to draw on the \code{canvas}.
+
+It is important to understand that a signal's frequency data and it's channel data are two completely different representations. The channel data is a representation in the time-domain, meaning it shows the signal's data in relation to time. When drawn onto a canvas, the x-axis is measured in time values\footnote{\cite[p. 40f]{park2009introductionto}}. A signal's frequency data, however, is the representation of a signal in the frequency-domain and a plotted version of the data will have an x-axis measured in frequencies\footnote{\cite[p. 276f]{park2009introductionto}}. The conversion of the signal from one to the other domain is done with the help of a Fourier Transformation. The Fourier Transformation is capable of extracting frequency data from a time-domain sample and of transforming frequency-domain data into time-domain data \cite{riffle2011fourier}. The transformation of a signal is a very CPU-intensive operation and is therefore not executed in JavaScript. All implementations of the Web Audio API come with a C++ implementation of the Fast Fourier Transformation\footnote{Fast Fourier Transformation is an algorithm to calculate the fourier transformation of a signal. \cite[p. 319f]{park2009introductionto}} and only the computed results of the transformation are made available through the API \cite[chapter: 7.6.5]{wilson2014webaudiospec}.
+
+The recording functionality of the recording view comes from the Recorder.js library\footnote{\url{https://github.com/mattdiamond/Recorderjs}, Matt Diamond, last checked on 20/03/2014}, a de-facto standard library which records the output of Web Audio nodes. For that purpose, it uses another relatively new Web API called \code{WebWorkers}. They allow to execute JavaScript code in parallel to the main user interface thread. This functionality is needed because the \code{Recorder} takes the raw quantized audio signal and transforms it into reusable \code{Buffer} objects or \code{WAV}\footnote{WAV is a file format which is commonly used to encode audio data.} files, which is a CPU-intensive operation. After finishing the recording, the computed \code{WAV} file is uploaded to the server and then added to the list of available files.

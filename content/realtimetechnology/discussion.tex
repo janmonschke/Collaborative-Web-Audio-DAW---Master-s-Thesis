@@ -1,0 +1,11 @@
+%!TEX root = ../../thesis.tex
+\section{Discussion}
+\label{sec:realtime-discussion}
+
+Long polling is not a technique that was built for the purpose of real-time communication. Its (mis-)usage of the HTTP protocol is more a hack than a reliable solution for the requirements of the collaborative editor. The previous chapter has shown other techniques that have been built with the intent to serve as real-time message protocols and therefore, long polling will not be used in the implementation of the web audio editor.
+
+Server-Sent Events are an efficient way to realize real-time communication on a modern website. Its main limitation however is that it does not allow clients to send messages to the server. Clients continue to rely on sending data to the server via the XHR object, thus leading to a large traffic overhead in real-time communication scenarios where clients send updates to the server multiple times a second. SSE is therefore better omitted from the implementation as well because it is not efficient enough.
+
+WebRTC does, however, allow clients to send messages. The messages are very efficient not only because they are sent with a real-time protocol (UDP or TCP) but also because they are sent to each client directly instead of relying on a central server. This would make WebRTC the perfect candidate for the implementation of the synchronization protocol but the main drawback here is that WebRTC requires a complex server-side setup. Since it would be used solely to send synchronization messages, the setup would be too much overhead. In addition, the synchronization algorithm would need to be altered in order to support a peer-to-peer system (see \refchapter{sync-diffsync}).
+
+WebSockets are efficient, they provide a full-duplex communication channel and are supported by all modern web browsers (including Internet Explorer\footnote{\url{http://caniuse.com/websockets}, last checked on 24/02/2014}). Moreover, they do not rely on a complex setup like WebRTC, making them the perfect choice for the implementation of a real-time synchronization system.

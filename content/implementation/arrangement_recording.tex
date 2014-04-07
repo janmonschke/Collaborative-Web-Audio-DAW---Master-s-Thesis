@@ -1,0 +1,7 @@
+%!TEX root = ../../thesis.tex
+\section{Arrangement Recording}
+\label{impl-arrangement-recording}
+
+Arrangement recording is used to create a WAV file from the arrangement that can be played back in media players or uploaded to user profiles to music sharing websites. It uses the same library for recording which was also used in \refchapter{impl-recording-piece}.
+
+The recording module hooks into its node graph directly in between the compressor and the speakers to buffer the audio signal (see \reffigure{fig:nodegraph}). The end of the recording is not triggered automatically and requires the user to press the recording button again, because the end of the arrangement cannot be calculated exactly. There might be a synthesizer piece at the end of a song with a high release time. The release time is not used in the calculation of a piece's length, thus an automatic recording stop could cut off a small fraction of the synthesizer's notes.

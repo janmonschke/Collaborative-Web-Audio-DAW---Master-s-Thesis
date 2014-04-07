@@ -1,0 +1,25 @@
+\documentclass[
+  a4paper,
+  oneside,
+  titlepage,
+  11pt
+]{memoir}
+
+\usepackage[breaklinks=true]{hyperref} % for all the refs (chapter, website)
+\usepackage{listings}   % for code
+\usepackage{caption}    % all the captions
+\usepackage{color}      % for proper color handling
+\usepackage{todonotes}  % for notes
+\usepackage[toc]{glossaries} % for the glossary
+\usepackage{graphicx}   % for advanced image handling
+\usepackage{fixltx2e}   % for subscript
+\usepackage{amssymb,amsmath} % for math equations
+\usepackage{lscape}     % for landscape pages
+\usepackage{breakcites} % breaks overfloating cites
+
+\input{config/code_highlighting}
+
+\linespread{1.3}        % one and a half
+
+\makeglossaries
+\glsaddall

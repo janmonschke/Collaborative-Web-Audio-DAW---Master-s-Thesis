@@ -1,0 +1,59 @@
+%!TEX root = ../../thesis.tex
+
+\section{Evolution of Audio on the Web}
+\label{sec:webaudio-evolution}
+
+\begin{quote}
+  ``So if you really want advanced features, I recommend embedding MP3 files via a Flash-based player instead.'' - \url{http://www.boutell.com/newfaq/creating/midi.html}
+\end{quote}
+
+In the history of HTML, audio never played a big part, naturally because HTML was intended for sharing scientific documents and not for the purpose that it has evolved into these days; to serve highly interactive and multimedia-capable applications. Despite this, there were several approaches to at least embed sound into HTML websites. Internet Explorer, for example, introduced a non-standard element called \code{bgsound}\footnote{\url{http://msdn.microsoft.com/en-us/library/ie/ms535198(v=vs.85).aspx} (10.02.2014)} which would load and play an audio file that was specified in the \code{src} attribute. It was also possible to specify the \code{volume}, the \code{balance}\footnote{Difference in volume between the left and the right speaker.} and if the sound should \code{loop}. Since the \code{bgsound}-element was not standardized, all other browsers simply ignored it and sound would only play in Internet Explorer. Also, it was not possible to control the element with JavaScript and the sound would only play until it was over (or it would play infinitely). Nowadays even Microsoft discourages the usage of this element: ``This element is obsolete and should no longer be used''. \cite{msdn2014bgsound}
+
+Other proposals to play audio on the web were mostly based on using external plugins to play audio. The two important elements that played (or still play, as explained later) a role here were \code{object} and its successor \code{embed}. They were designed for embedding content into HTML that could not be displayed by other HTML elements, content like flash movies, videos, Java applets and audio files. When parsing such an element, the browser would look up and start one of its plugins to display the content. So if we wanted to embed an audio file for example, one of the user's media players would get injected into the page including its native media controls. Still, it was not possible to script the behavior of the element and sound files would not play if a user did not have a media player installed. \cite[The embed element]{w32014html5}
+
+Adobe's Flash player became very popular amongst web developers because it provided all the needed APIs for adding and controlling multimedia objects and even games on web sites. So in order to play sounds on a website, developers simply included a flash script that would take some parameters (e.g. a song list) from the \code{embed} element and Flash would then take care of playing them. Some of these players had their own interface for playing and skipping songs from playlists (e.g. XSPF Web Music Player\footnote{\url{http://musicplayer.sourceforge.net/}}) and some only acted as scriptable player objects and developers were able to provide their own HTML interface and to control the playback with JavaScript. These players worked well in the cases that developers needed media player replacements on their websites, because Flash was, and still is, available on more than 95\% of all Internet-connected PCs. \cite{arah200999percent}
+
+Nevertheless, using these players meant that developers were depending on Flash, a proprietary, licensed technology, to add multimedia capabilities to their websites, which is in stark contrast to the open nature of the web. Therefore, a new HTML element was introduced in HTML5; the \code{audio} element\footnote{\cite[The audio element]{w32014html5}}. This new element finally gives developers the opportunity to play audio files on their websites through a standardized and widely available\footnote{\url{http://caniuse.com/audio}, last checked on 24/03/2014} API.
+
+\begin{lstlisting}[language=HTML, caption=The HTML5 audio element, label=lst:audioelement]
+  <audio id="my_audio" controls preload autoplay>
+    <source src="sound.mp3" type="audio/mpeg" />
+    <source src="sound.ogg" type="audio/ogg" />
+  </audio>
+\end{lstlisting}
+
+The element (see \reflisting{lst:audioelement}) consists of the enclosing \code{audio} tag and various \code{source} tags. Each \code{source} tag stands for a different file format of the same audio file so that browsers can decide which file to pick, depending on the codecs that are available. Developers can control the behavior of the \code{audio} tag by adding several attributes to it, like the \code{preload} attribute, which will ensure that the audio file is preloaded once the element has been rendered, or the \code{autoplay} attribute which will play the audio file automatically after enough data of the file has been buffered.
+
+\begin{lstlisting}[language=JavaScript, caption=Interacting with the audio element in JavaScript, label=lst:audioelementjs]
+  var audio = document.getElementById("my_audio");
+
+  var playBt = document.getElementById("play-button");
+  playBt.addEventListener("click", function(){
+    audio.play();
+  });
+
+  var stopBt = document.getElementById("stop-button");
+  stopBt.addEventListener("click", function(){
+    audio.stop();
+  });
+\end{lstlisting}
+
+Just as with different flash libraries for audio playback, the \code{audio} element provides two possible modes. The `visual' mode, which provides a minimal interface for controlling the audio playback, is activated by adding the \code{controls} attribute to the element. When the \code{controls} attribute is omitted, the element is not rendered visually but it will still provide playback capabilities via JavaScript and developers can build with a custom user interface. \reflisting{lst:audioelementjs} demonstrates how to interact with the \code{audio} element in JavaScript. It can be selected just like all other DOM nodes by using \code{document.getElementById} (line 1) and it has several methods like \code{play} (line 5) and \code{stop} (line 10) to control the audio playback\footnote{\cite[Media elements]{w32014html5}}.
+
+In addition to the above mentioned methods and attributes, the element's API also provides methods to change the audio file, to reload the audio file or to use audio streams as their source. All in all, the audio element provides a complete API to play back audio files of any kind on a website.
+
+Now that there was a way to play audio, the logical next step was to add APIs to analyze and create audio. In 2010 \cite{kirn2010soundsynth}, a team at Mozilla started working on an extension to the \code{audio} element's API, the Audio Data API, that added features such as frequency analysis and writing raw audio via JavaScript. Though the API was only available in Firefox, and has never been implemented in another web browser, it already showed at that time, that audio processing in JavaScript is a field that many people are interested in and there were many demos, showing the capabilities of this draft API like beat detection algorithms or filter functions \cite[chapter: Working Audio Data Demos]{humphrey2013audiodata}.
+
+The `successor' of the Audio Data API is the Web Audio API \cite{wilson2014webaudiospec}, which was drafted by Chris Rogers in 2012. It describes a more low-level audio API which adds important features like exact audio timing, detailed audio analysis and DSP\footnote{Digital Signal Processing} to JavaScript. These features are the building blocks of all modern audio programs and they now allow the development of complex audio visualizations and audio software in the browser. As of today\footnote{\url{http://caniuse.com/audio-api}, last checked on 18/02/2014}, the Web Audio API is available in the recent versions of Chrome, Safari, Opera and Firefox, as well as in iOS Safari, Chrome for Android and Firefox for Android.
+
+\begin{lstlisting}[language=JavaScript, caption=Simple node graph in the Web Audio API, label=lst:webaudio-simple]
+  var context = new AudioContext();
+
+  var osc = context.createOscillator();
+  var filter = context.createBiquadFilter();
+
+  osc.connect(filter);
+  filter.connect(context.destination);
+\end{lstlisting}
+
+The Web Audio API is, like many other audio-related APIs, a node-graph based API \cite[chapter: 1.1]{smus2013webaudio}. All nodes are created from a \code{context} object (line 1), just like in the \code{canvas} API\footnote{\url{http://www.w3.org/wiki/HTML/Elements/canvas}, last checked on 24/02/2014} (see \reflisting{lst:webaudio-simple}). Nodes can be connected to other nodes which can then alter or analyze the signal and pass it to the next node. In order to play the sound on the user's speakers, a node needs to be connected to the \code{context's destination} (line 7). In this example, an oscillator is connected to a filter (line 6) which filters the signal's frequencies and then passes it to the \code{destination}. The next chapters will focus on important audio-theory aspects and how they can implemented or used in the Web Audio API.

@@ -1,0 +1,23 @@
+%!TEX root = ../../thesis.tex
+\section{Tracks}
+\label{impl-tracks}
+
+A track is the data structure that represents a row of pieces as shown in \refchapter{concept-overview}.
+
+\begin{lstlisting}[language=JavaScript, caption=A track's data structure, label=lst:track-structure]
+  {
+    "id": "track_id",
+    "title": "Guitar",
+    "type": "recording/drums/synth",
+    "gain": 0.9,
+    "pieces": [ Object ]
+  }
+\end{lstlisting}
+
+Its data structure contains information about the track's \code{gain} (line 5, \reflisting{lst:track-structure}), all its associated \code{pieces} (line 6) and its \code{title} (line 3), which makes it distinguishable from other tracks. The most important attribute is its \code{type} (line 4), because it influences the track's function and behavior. 
+
+The editor prototype supports three different types: `recording', `drums' and `synth'. Each of these types makes the frontend's track object behave differently. The `recording' type adds drag and drop support for audio files which means that users can drag audio files from their computer onto a `recording' track and the file will be uploaded to the server and added to the track at the position it was dropped onto. When a file is dragged over a track, the track object checks if the file type is supported and provides visual feedback if the file type is not supported (e.g. for text files). In addition to local files, the track object also supports dragged buffers from the file browser (see \refchapter{concept-import}). This feature makes use of the native drag and drop API of HTML5 which adds events like `drag' and `dragover' to normal DOM elements and provides access to the \code{File} objects that are dragged from the local computer onto the website \cite{bidelman2010dnd}. Additionally, the API can make every HTML element draggable by adding a `draggable'\footnote{\cite[chapter: Creating draggable content]{bidelman2010dnd}} attribute to it. When a user starts dragging such an element, the above mentioned events will also fire for normal HTML elements. In case of dragged HTML elements, the API does not provide access to a \code{File} object but allows to add data to the event via its \code{dataTransfer} property\footnote{\cite[chapter: The DataTransfer object]{bidelman2010dnd}}. If, for example, a buffer is dragged from the editor's file browser, the associated buffer's \code{id} is added so that the track object is able to determine the type of the dragged object.
+
+Additionally, the \code{type} parameter influences the functionality of a track's `add' button. Depending on the \code{type}, a new piece is added to the current track.
+
+Another role of the track object is to handle the `solo' and `mute' states. The `solo' state mutes all other tracks, so that only this track can be heard when playback is started. The `mute' state mutes this track so that it is not heard in the playback. Both state changes are propagated as events from AngularJS's \code{\$rootScope} so that tracks can react to the state changes of other tracks e.g. turn down their volume when another track's `solo' mode is activated. A track's volume is controlled by two independently acting \code{GainNodes} (see \refchapter{impl-node-graph}) and its `solo' and `mute' state are not synchronized across the clients (see \refchapter{sub:sync-tracked-values}).

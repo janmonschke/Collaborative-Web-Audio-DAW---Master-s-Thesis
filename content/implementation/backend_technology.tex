@@ -1,0 +1,20 @@
+%!TEX root = ../../thesis.tex
+\section{Technology}
+\label{backend-technology}
+
+\subsection{NodeJS}
+\label{backend-technology-nodejs}
+
+The editor's server is written in NodeJS\footnote{\url{http://nodejs.org}, last checked on 25/03/2014} a server-side JavaScript platform. Through using JavaScript in the frontend and in the backend, the implementation of the synchronization algorithm (see \refchapter{impl-sync-algorithm}) was more easy because the same helper modules and, to some extend, even the same code could be used. There is good support for WebSockets in external NodeJS modules, which builds the foundation of the synchronization modules.
+
+By default, NodeJS does not come with a dedicated web framework but only with core modules which are more low-level than other backend platforms such as Ruby on Rails\footnote{A ruby-based web framework, \url{http://rubyonrails.org/}, last checked on 24/03/2014} or Django\footnote{A python-based web framework, \url{https://www.djangoproject.com/}, last checked on 24/03/2014}. For this reason, Express\footnote{\url{http://expressjs.com/}, last checked on 24/03/2014} has been used to implement the backend. Express is a light-weight framework but it provides handy abstractions and building blocks to build complex web applications on top of it \cite[p. 176f]{cantelon2013node}.
+
+\subsection{CouchDB}
+\label{backend-technology-couchdb}
+
+CouchDB\footnote{\url{http://couchdb.apache.org/}, last checked on 24/03/2014} has been chosen to be the database for the editor. It is a document-based no-SQL database, meaning that it stores data in documents rather than in rows and the data is not requested with SQL. The format of CouchDB documents is JSON, which makes it perfectly suitable for JavaScript backends and frontends. Instead of using SQL, data is queried using \code{views} on the data \cite[chapter: Finding Your Data with Views]{anderson2010couchdb}. \code{Views} consist of a \code{map} and a \code{reduce} function that are both used to pre-select and aggregate data for queries.
+
+\subsection{Redis}
+\label{backend-technology-redis}
+
+Redis is an in-memory key-value database\footnote{\url{http://redis.io/}, last checked on 25/03/2014} which is used in addition to CouchDB. It is, however, not used to store project data or user data. Its sole purpose is to store user sessions. CouchDB has not been used for this purpose, because CouchDB and NodeJS might be run from two different servers and the request to create a session or to check if a session is valid would take much longer in this case. Since Redis is an in-memory store, all lookup- and write-operations are much faster.

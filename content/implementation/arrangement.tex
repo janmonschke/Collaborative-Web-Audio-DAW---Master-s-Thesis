@@ -1,0 +1,21 @@
+%!TEX root = ../../thesis.tex
+\section{Arrangement}
+
+The arrangement is the top-level data structure that contains the metadata of a project and all tracks and pieces. All data is organized into one single JSON object so that it is easier to create and apply diffs in the synchronization module (see \refchapter{impl-sync-algorithm}). Also, it is much easier to save single documents without cross-references in CouchDB (see \refchapter{backend-technology-couchdb}). Regardless, the data structure is simple and does not need to be normalized into different entities because no object in an arrangement will ever be referenced from other arrangement objects.
+
+\begin{lstlisting}[language=JavaScript, caption=An arrangement's data structure, label=lst:arrangement-structure]
+{
+  id: "arrangement_id",
+  title: "Never gonna give you up",
+  owner: "user_id",
+  participants: ["user_id"],
+  tracks: [ Object ],
+  buffers: [ Object ]
+}
+\end{lstlisting}
+
+\reflisting{lst:arrangement-structure} shows that the most important information about arrangements is kept in the \code{tracks} array (line 6, see \refchapter{impl-tracks}) and the remaining information is mainly used in the backend to check if users are allowed to edit the document (\code{owner} and \code{participants}, line 4f) or to have an overview over all uploaded buffers (\code{buffers}, line 7).
+
+The frontend representation of the arrangement, however, is an important node in the editor's node graph (see \refchapter{impl-node-graph}) and provides the master audio node that connects all available audio nodes to the speakers. Additionally, it manages almost all data structure operations such as adding and removing tracks or pieces. It handles the initialization of the synchronization module and takes care of applying the changes that are received from the server. The scheduling module (see \refchapter{sec:impl-scheduling}) also relies on the arrangement because the arrangement is capable of determining the total length of the project and looks up soon-to-be scheduled pieces.
+
+Another task of the arrangement object is to handle the upload of files and to add them to the list of buffers. Vice versa, it also provides helper functions to delete uploaded files and ensures that all the file's associated pieces are also deleted so that the data structure does not contain unresolvable audio files.

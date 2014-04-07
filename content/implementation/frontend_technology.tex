@@ -1,0 +1,46 @@
+%!TEX root = ../../thesis.tex
+\section{Technology}
+
+\subsection{AngularJS}
+\label{subsec:technology-angular}
+
+The core of the frontend editor is based on the JavaScript framework AngularJS\footnote{\url{http://angularjs.org/}, last checked on 20/03/2014}. It provides useful abstractions and concepts to organize JavaScript applications. The next chapters will contain details about how the editor's components were developed with the help of AngularJS components, so it is important to mention the core principles of the framework briefly.
+
+AngularJS is built on top of the two concepts ``separation of concerns'' and ``dependency injection''. Separation of concerns describes that applications should be built from small, separated modules \cite[p. 8]{lerner2013ngbook}. AngularJS provides several base modules from which developers can create their own modules, which then form their application. Some of these modules are `directives' and `controllers' and they are the modules that were mostly used to create the audio editor.
+
+\textbf{Directives} are modules that either create completely new HTML elements with custom layout and functionality, or they can be used to add custom functionality to already existing HTML elements\footnote{\cite[p. 61ff]{lerner2013ngbook}}. If written in a granular way, directives can be reused in many places of an application, so that common functionality does not need to be rewritten. An example for a reused directive in the audio editor is the \code{draggableDirective}, which adds drag and drop functionality to existing HTML elements. The functionality of these elements is described in more detail in \refchapter{impl-recording-piece}. As a rule of thumb, directives should be used whenever there is the need for accessing DOM elements and their events.
+
+\textbf{Controllers} are used to add logic to HTML templates or to directives\footnote{\cite[p. 25ff]{lerner2013ngbook}}. AngularJS comes with its own template engine that supports declarative definitions and declarative two-way bindings. It is best to show the connection of controllers and templates in a short example:
+
+\begin{lstlisting}[language=HTML, caption=A simple AngularJS template, label=lst:angular-template]
+  <div ng-controller="MyController">
+    <input ng-model="test" />
+    <button ng-click="showValue()">Show</button>
+  </div>
+\end{lstlisting}
+
+The template shown in \reflisting{lst:angular-template} declares that its functionality should be served from a controller called \code{MyController} (line 1). Its HTML input element should be bound to the value of a model called \code{test} (line 2) and a method called \code{showValue} should be called when the button in line 3 is clicked. All the attributes in this example that start with \code{ng-*} are directives that are part of Angular's core.
+
+\begin{lstlisting}[language=JavaScript, caption=A simple AngularJS controller, label=lst:angular-controller]
+  app.controller("MyController", ["$rootScope", "$scope",
+    function($rootScope, $scope){
+      $scope.test = "Timah";
+
+      $scope.showValue = function(){
+        alert($scope.test);
+      };
+  }]);
+\end{lstlisting}
+
+The context for the referenced model \code{test} in line 2 and the method \code{showValue} is provided by a \textbf{scope} which comes with the controller that is defined in \reflisting{lst:angular-controller}. A scope is used for keeping the application's data and for referencing methods in HTML templates. Furthermore, scopes can also be used to emit and listen to events, similar to DOM events. AngularJS defines which controller to instantiate by looking at the name that is provided from controllers (line 1). The value for the input element from \reflisting{lst:angular-template} comes from the variable that is assigned to the \code{\$scope} in line 3. Its value is bound to the template in two-ways. First, it will always be updated in the template, when \code{\$scope.test} changes in the program's logic. Secondly, whenever the value of the input element is changed by a user, \code{\$scope.test} is updated accordingly. The method that was referenced in the button from the above template is also added to the \code{\$scope} (line 5) and each time the button is pressed, the current value of \code{\$scope.test} will be alerted.
+
+Another AngularJS core principle is demonstrated in \reflisting{lst:angular-controller}: Dependency Injection (DI). The controller itself is a simple JavaScript function that expects the two parameters \code{\$scope} and \code{\$rootScope}. Both parameters are included via dependency injection, a flexible way to define dependencies of a function. The module that resolves dependencies from the name of the parameter and injects them into the functions (the so-called \code{injector}), is capable of dynamically changing dependencies at runtime, which is the perfect setup for mocking dependencies when testing. DI therefore prevents that dependencies are loaded from a global namespace, which makes testing of components very hard\footnote{\cite[p. 149ff]{lerner2013ngbook}}.
+
+
+\subsection{Grunt}
+\label{subsec:technology-grunt}
+Since AngularJS embraces a modular architecture, the frontend application is split up into many files and folders and an initial load of all files individually would slow down the application startup immensely. Therefore, an application compiler is used to concatenate all files into only four different files. The compile task is implemented as a Grunt\footnote{\url{http://gruntjs.com/}, last checked on 21/03/2014} task. Grunt is a build tool which is written in JavaScript and which provides many modules that help organizing and compiling frontend applications. In addition to simply concatenating the application, Grunt is also used to minify the application code before it is deployed to a server, in order to have an even faster load time. As mentioned before, the application is split up into only four files in the end. The main application logic, meaning all self-written AngularJS directives, controllers and other components, reside in the `app.js' file. All templates are added to `templates.js' and all external libraries, like AngularJS, are put into `vendor.js'.
+
+\subsection{Stylus}
+\label{subsec:technology-stylus}
+The fourth file is `app.css', which is the compiled version of all Stylus\footnote{\url{http://learnboost.github.io/stylus/}, last checked on 21/03/2014} files. Stylus is a CSS pre-processor which provides a cleaner syntax, many helper functions and variables, e.g., for writing prefix-free\footnote{New and experimental CSS features are often introduced with so-called vendor prefixes e.g. \code{-webkit-featureName} until browser vendors are convinced they are stable enough and they fulfill the CSS specification.} CSS or for calculating colors and sizes in relation to other CSS definitions.

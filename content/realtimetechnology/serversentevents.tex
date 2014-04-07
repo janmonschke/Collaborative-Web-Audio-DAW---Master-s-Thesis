@@ -1,0 +1,33 @@
+%!TEX root = ../../thesis.tex
+\section{Server-Sent Events}
+\label{realtime-sse}
+
+The Server-Sent Events API (SSE) is a standardised method to stream events from the server to the client. All events are sent via an open HTTP connection which makes the protocol very efficient and easy to optimise. \cite{hickson2012}
+
+\begin{lstlisting}[language=JavaScript, caption=Messages in the Server-Sent Event protocol, label=lst:eventsource]
+  data: { test: true }
+
+  event: name
+  data: { user: "test" }
+
+  retry: 1000
+
+  id: 3141592653589793
+\end{lstlisting}
+
+Messages in SSE require a special format, as shown in \reffigure{lst:eventsource}. Data messages must be prefixed by `data:' and they can be associated with a specific event by adding an `event:'-prefixed line above. As well as data messages, there are two additional control messages. The `id:' message in line eight represents the id of the last event that has been sent. In the case of a reconnect, this id would be sent to the server so that only events after this specific event would be sent to the client. Besides this, there are also `retry:' messages that specify the timeout time for the client before reconnecting to the server if the connection has been lost. \cite{bidelman2010sse}
+
+\begin{lstlisting}[language=JavaScript, caption=Listening to server events in SSE, label=lst:eventsource-client]
+  var source = new EventSource("/sse");
+
+  source.onmessage = function(event){
+    console.log(event.data);      // -> "{ test: true }"
+  };
+
+  source.addEventListener('name', function(event){
+    var jsonData = JSON.parse(event.data);
+    console.log(jsonData.user);   // -> "test"
+  });
+\end{lstlisting}
+
+Clients simply have to connect to the server's ``EventSource'' and all events that are sent from that source will trigger DOM events from the connection object. \reflisting{lst:eventsource-client} demonstrates how to listen to events triggered by the two different message formats. Messages without event context (line 1 in \reflisting{lst:eventsource}) trigger the \code{onmessage} handler, whilst messages with event context (line three in \reffigure{lst:eventsource}) trigger listeners that have been added by \code{addEventListener}. The event object that is being transmitted to the listeners contains the message's content in its \code{data} attribute. This attribute is always interpreted as a String and therefore needs to be parsed if another format (e.g. like JSON in the above examples) has been used.

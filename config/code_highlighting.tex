@@ -1,0 +1,42 @@
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{mygreen}{rgb}{0.2, 0.8, 0.2}
+\definecolor{myorange}{rgb}{1.0, 0.5, 0}
+
+% defining JavaScript
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, catch, switch, var, if, in, while, do, else, case, break, undefined, null},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+% loading languages
+\lstloadlanguages{JavaScript}
+
+% settings
+\lstset{
+  extendedchars=true,
+  basicstyle=\footnotesize\ttfamily,
+  showstringspaces=false,
+  showspaces=false,
+  numbers=left,
+  numberstyle=\footnotesize,
+  %numbersep=9pt,
+  tabsize=2,
+  breaklines=true,
+  showtabs=false,
+  captionpos=b,
+  %colors
+  %backgroundcolor=\color{lightgray},
+  commentstyle=\color{darkgray}\ttfamily\textit,
+  stringstyle=\color{myorange}\ttfamily,
+  keywordstyle=\color{blue}\bfseries,
+  identifierstyle=\color{black},
+  %margins
+  xleftmargin=19pt,
+  aboveskip=15pt,
+  belowskip=15pt
+}

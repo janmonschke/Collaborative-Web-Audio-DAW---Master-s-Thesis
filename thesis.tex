@@ -1,0 +1,58 @@
+\author{Jan Monschke}
+\title{Building a collaborative music production environment using emerging web standards}
+
+\input{config/commands}
+\input{config/basic}
+
+\begin{document}
+
+\include{content/title}
+
+% Empty Page
+\thispagestyle{empty}
+\phantom{a}
+\vfill
+
+\noindent \copyright \ 2014 Jan Monschke
+
+\noindent \href{http://creativecommons.org/licenses/by-sa/4.0/}{This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.}
+
+\vfill
+% \Empty Page
+
+\include{content/abstract}
+
+\include{content/acknowledgements}
+
+\include{content/tableofcontents}
+
+\input{content/parts}
+
+\newpage
+\listoffigures
+\newpage
+\lstlistoflistings
+
+\bibliography{bibliography}
+\bibliographystyle{apalike-url}
+
+\part{Appendix}
+\begin{appendix}
+   \clearpage
+   \pagenumbering{roman}
+   \input{content/appendix}
+\end{appendix}
+
+\newpage
+\thispagestyle{empty}
+
+\noindent \textbf{Declaration of Academic Integrity}\\
+
+
+\noindent I hereby confirm that the present thesis on ``\thesistitle'' is solely my own work and that if any text passages or diagrams from books, papers, the Web or other sources have been copied or in any other way used, all references – including those found in electronic media – have been acknowledged and fully cited.
+
+\vspace*{1.5cm}
+\noindent .....................................................................................\\
+(Name, Date, Signature)
+
+\end{document}

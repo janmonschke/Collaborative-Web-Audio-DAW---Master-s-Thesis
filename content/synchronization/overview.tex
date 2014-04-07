@@ -1,0 +1,36 @@
+%!TEX root = ../../thesis.tex
+\section{Overview}
+
+This chapter gives an overview of various techniques that ensure consistency in interactive collaborative environments with shared documents. These techniques will be rated based on their features (\refchapter{sync-features}), complexity and impact on the user experience (\refchapter{sync-ux}). In \refchapter{sync-discussion} one of the detailed techniques is picked for the implementation of the collaborative music editor by incorporating the evaluations that were formulated in this chapter. The selection of algorithms used in this chapter is, of course, not complete and all peer-to-peer syncing mechanisms have been omitted. This is due to the P2P stack that is available in modern web browsers (WebRTC) not currently being stable enough for such an important foundation of a web application. All shown techniques assume that the system underlies a client-server architecture.
+
+\section{Features}
+\label{sync-features}
+
+Distributed collaborative systems allow users to work on the same documents\footnote{Document here, is seen as a general type of data and not as a text document, although a text document is used in most examples for simplicity.} at the same time. A variety of algorithms and techniques have been developed that enable simultaneous editing. According to \cite{sun1998achieving}, these all need to feature solutions to the three main inconsistency problems that occur in shared environments.
+
+\subsection{Convergence}
+
+Since document operations are executed locally, all local documents can be in a temporary state of divergence\footnote{\cite[p. 65]{sun1998achieving}}. This is acceptable, as long as the algorithm is capable of producing identical documents once all local changes are propagated throughout the entire system.
+
+\subsection{Intention preservation}
+
+Each local change to a document has a certain intention. This `local' intention needs to be preserved when an operation is executed on other remote documents\footnote{\cite[p. 66]{sun1998achieving}}.
+
+The impact of ``intention violation'' can be seen by evaluating concurrent edits to a text document (\reffigure{fig:OT}). Both users start off with the same document and edit the document simultaneously. They then send the changes to their other peer who subsequently applies those changes to his document. However, since the local document has changed, applying the other peer's alterations results in having a different document because the local intention of the action has not been preserved.
+
+This feature might look similar to ``Convergence'', but it actually relates to a different problem. Convergence without Intention Preservation only ensures, that all participants have an identical document. But it is possible that this document can be the wrong document because the local intention was not preserved when the actions were applied.
+
+\subsection{Causality preservation}
+
+Every local operation is the result of the merge of all its previous operations, whether local or remote. Either way, each operation has a causal relationship to its predecessor. In distributed systems, messages arrive asynchronously and therefore they ``may arrive and be executed out of their natural cause-effect order''\footnote{\cite[p. 65]{sun1998achieving}}. For example, a user might receive an update of a value of an object, but the user has not yet received information about this object because the message has been delayed.
+
+A common method to tackle this problem is to delay the execution of operations until their causal predecessors have arrived. \cite[p. 2ff]{fidge1988timestamps}
+
+\section{User Experience}
+\label{sync-ux}
+
+In terms of user experience, the algorithm should permit a document to be edited locally. Clients should not need to wait for merged documents from a server while not being able to perform another operation on the document. Due to the latency of distributed systems, users will certainly see a delay between their actions and the visual feedback, leading to annoyance and irritation. The technique needs to support \textbf{Latency Hiding} in order to provide a good user experience.
+
+Considering that a lot of users edit a document concurrently, the algorithm needs to merge a great deal of interdependent changes. This may result in cases that are not mergeable, in which case certain actions cannot be respected. These cases need to be detected and taken care of. The system should not simply fail silently and then report when it failed. The required features according to this problem can be described as \textbf{Graceful Exit}.
+
+In addition to the above, the system should allow every user to edit the entire document at any given time. It should not matter how many users are connected to the system, nor which part of a document is being edited, nor should it matter by which user is being edited. If all this is achieved, the algorithm supports \textbf{Full Concurrency}. Not having Full Concurrency may lead to frustration in collaborative environments because users can block the work of other users.

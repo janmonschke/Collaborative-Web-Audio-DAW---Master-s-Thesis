@@ -1,0 +1,41 @@
+%!TEX root = ../../thesis.tex
+\section{Buffers}
+\label{sec:webaudio-buffer}
+
+\begin{quote}
+  ``Arrange whatever pieces come your way.'' -
+  Virginia Woolf
+\end{quote}
+
+The foundation of every music production software is the ability to play back audio files. It is needed in DJing software to mix songs together, or in composition software to create sample based arrangements of various kinds (e.g. in sequencers or drum machines).
+
+Though playing back audio files was already possible with the \code{audio} element, the Web Audio API (WAA) provides a new way to load and play files in order to make them available in its node-based system. Since the WAA is more low-level than other audio APIs before, loading a file and playing a file involve more than just a simple \code{audio} element that takes care of everything. 
+
+\begin{lstlisting}[language=JavaScript, caption=Fetching an audio file from the server, label=lst:xhr-audio]
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/the_file.mp3", true);
+  xhr.responseType = "arraybuffer";
+  xhr.onload = processFile
+  xhr.send();
+\end{lstlisting}
+
+The first step is to load a remote file into the application with an XHR request (see \reflisting{lst:xhr-audio}). It is important to set the \code{responseType} to \code{arraybuffer} (line 3) so that it can be processed properly by the WAA in the \code{processFile} callback (line 4).
+
+\begin{lstlisting}[language=JavaScript, caption=Decoding the audio file, label=lst:processFile]
+  context.decodeAudioData(xhr.response, function(buffer) {
+    songBuffer = buffer;
+  }, function(e) {
+    console.log("Something went wrong", e);
+  });
+\end{lstlisting}
+
+After receiving the file, the request's \code{response} needs to be decoded from an \code{AudioContext} instance (line 1, \reflisting{lst:processFile}), which will return the decoded file as an instance of \code{AudioBuffer} (line 2) that is needed in order to play the file. The WAA hides the complexity of deciding which decoder to use depending on the current file's format. In case of the current client not supporting the file format, the decode step will fail and call the second callback (line 4). In order to prevent this from happening, it comes in handy to use the \code{audio} element's \code{canPlayType} (\cite[MIME types]{w32014html5}) method to determine if an alternative file format should be used.
+
+\begin{lstlisting}[language=JavaScript, caption=Playing the \code{AudioBuffer}, label=lst:playbuffer]
+  var source = context.createBufferSource();
+  source.buffer = songBuffer;
+  source.connect(context.destination);
+  source.start(0);
+\end{lstlisting}
+
+The last step is to create a \code{BufferSourceNode} (line 1, \reflisting{lst:playbuffer}) which is capable of hooking into WAA's node graph (line 3) and \code{starting} the \code{AudioBuffer} (line 4). A \code{BufferSourceNode} can be stopped by calling its \code{stop} method but the instance cannot be reused again, once it has been stopped. Every time an \code{AudioBuffer} should be played, a new instance of \code{BufferSourceNode} needs to be created.
