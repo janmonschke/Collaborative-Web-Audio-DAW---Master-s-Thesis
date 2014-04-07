@@ -1,4 +1,4 @@
-# Building a collaborative music production environment using emerging web standards
+### Building a collaborative music production environment using emerging web standards
 
 My master's thesis on building a web-based DAW using the Web Audio API and the Differential Synchronization algorithm.
 
