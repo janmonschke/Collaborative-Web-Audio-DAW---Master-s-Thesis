@@ -1,0 +1,34 @@
+######################
+# OS generated files #
+######################
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+######################
+# Dependencies       #
+######################
+
+
+######################
+# Generated Files    #
+######################
+
+*.aux
+*.log
+*.gz
+*.toc
+*.bbl
+*.blg
+*.out
+*.glo
+*.ist
+*.lof
+*.xdy
+*.fdb_latexmk
+*.auf
+
+thesis.lol
